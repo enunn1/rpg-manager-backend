@@ -14,68 +14,75 @@ datasource db {
 }
 
 model User {
-  id            Int              @id @default(autoincrement())
-  name          String
+  id            String           @id @default(uuid())  
+  displayName   String
   email         String           @unique
   passwordHash  String
   campaigns     Campaign[]       @relation("CreatedCampaigns")
   characters    Character[]
-  campaignUsers CampaignUser[]
+  memberships   CampaignMember[]
 }
 
 model Campaign {
-  id              Int             @id @default(autoincrement())
+  id              String          @id @default(uuid())
   name            String
-  description     String
-  createdByUserId Int
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdByUserId String
   createdBy       User            @relation("CreatedCampaigns", fields: [createdByUserId], references: [id])
   sessions        Session[]
   npcs            NPC[]
   characters      Character[]
   encounters      Encounter[]
-  users           CampaignUser[]
+  members         CampaignMember[]
 }
 
-model CampaignUser {
-  id         Int       @id @default(autoincrement())
-  role       String
-  userId     Int
-  campaignId Int
+model CampaignMember {
+  id         String    @id @default(uuid())
+  role       CampaignRole
+  userId     String
+  campaignId String
   user       User      @relation(fields: [userId], references: [id])
   campaign   Campaign  @relation(fields: [campaignId], references: [id])
 }
 
+enum CampaignRole {
+  DM
+  PLAYER
+}
+
 model Session {
-  id         Int       @id @default(autoincrement())
+  id         String    @id @default(uuid())
   date       DateTime
   notes      String
-  campaignId Int
+  campaignId String
   campaign   Campaign  @relation(fields: [campaignId], references: [id])
 }
 
 model Character {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(uuid())
   name          String
   class         String
   level         Int
   stats         Json
-  playerUserId  Int
-  campaignId    Int
+  playerUserId  String
+  campaignId    String
   player        User      @relation(fields: [playerUserId], references: [id])
   campaign      Campaign  @relation(fields: [campaignId], references: [id])
 }
 
 model NPC {
-  id         Int       @id @default(autoincrement())
-  name       String
-  role       String
+  id          String    @id @default(uuid())
+  name        String
+  role        String
   description String
-  campaignId Int
-  campaign   Campaign  @relation(fields: [campaignId], references: [id])
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id])
 }
 
 model Monster {
-  id         Int       @id @default(autoincrement())
+  id         String    @id @default(uuid())
   name       String
   statBlock  Json
   source     String
@@ -83,18 +90,18 @@ model Monster {
 }
 
 model Encounter {
-  id         Int               @id @default(autoincrement())
+  id         String    @id @default(uuid())
   name       String
-  campaignId Int
-  campaign   Campaign          @relation(fields: [campaignId], references: [id])
+  campaignId String
+  campaign   Campaign           @relation(fields: [campaignId], references: [id])
   monsters   EncounterMonster[]
 }
 
 model EncounterMonster {
-  id          Int       @id @default(autoincrement())
-  encounterId Int
-  monsterId   Int
-  count       Int
+  id          String    @id @default(uuid())
+  encounterId String
+  monsterId   String
+  count       String
   encounter   Encounter @relation(fields: [encounterId], references: [id])
   monster     Monster   @relation(fields: [monsterId], references: [id])
 }
