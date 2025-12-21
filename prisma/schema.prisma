@@ -12,3 +12,89 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            Int              @id @default(autoincrement())
+  name          String
+  email         String           @unique
+  passwordHash  String
+  campaigns     Campaign[]       @relation("CreatedCampaigns")
+  characters    Character[]
+  campaignUsers CampaignUser[]
+}
+
+model Campaign {
+  id              Int             @id @default(autoincrement())
+  name            String
+  description     String
+  createdByUserId Int
+  createdBy       User            @relation("CreatedCampaigns", fields: [createdByUserId], references: [id])
+  sessions        Session[]
+  npcs            NPC[]
+  characters      Character[]
+  encounters      Encounter[]
+  users           CampaignUser[]
+}
+
+model CampaignUser {
+  id         Int       @id @default(autoincrement())
+  role       String
+  userId     Int
+  campaignId Int
+  user       User      @relation(fields: [userId], references: [id])
+  campaign   Campaign  @relation(fields: [campaignId], references: [id])
+}
+
+model Session {
+  id         Int       @id @default(autoincrement())
+  date       DateTime
+  notes      String
+  campaignId Int
+  campaign   Campaign  @relation(fields: [campaignId], references: [id])
+}
+
+model Character {
+  id            Int       @id @default(autoincrement())
+  name          String
+  class         String
+  level         Int
+  stats         Json
+  playerUserId  Int
+  campaignId    Int
+  player        User      @relation(fields: [playerUserId], references: [id])
+  campaign      Campaign  @relation(fields: [campaignId], references: [id])
+}
+
+model NPC {
+  id         Int       @id @default(autoincrement())
+  name       String
+  role       String
+  description String
+  campaignId Int
+  campaign   Campaign  @relation(fields: [campaignId], references: [id])
+}
+
+model Monster {
+  id         Int       @id @default(autoincrement())
+  name       String
+  statBlock  Json
+  source     String
+  encounters EncounterMonster[]
+}
+
+model Encounter {
+  id         Int               @id @default(autoincrement())
+  name       String
+  campaignId Int
+  campaign   Campaign          @relation(fields: [campaignId], references: [id])
+  monsters   EncounterMonster[]
+}
+
+model EncounterMonster {
+  id          Int       @id @default(autoincrement())
+  encounterId Int
+  monsterId   Int
+  count       Int
+  encounter   Encounter @relation(fields: [encounterId], references: [id])
+  monster     Monster   @relation(fields: [monsterId], references: [id])
+}
