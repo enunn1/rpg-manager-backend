@@ -1,54 +1,50 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../prisma/client';
-import { ENV } from '../config/env';
+import { PrismaService } from '../prisma/prisma.service';
+import type ms from "ms";
 
+@Injectable()
+export class AuthService {
+  constructor(private prisma: PrismaService) {}
 
-const SALT_ROUNDS = 10;
-
-
-export async function registerUser(
-  email: string,
-  password: string,
-  displayName: string
-) {
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      displayName
+  async register(email: string, displayName: string, password: string) {
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new UnauthorizedException('Email already in use');
     }
-  });
 
-  return user;
-}
+    const passwordHash = await bcrypt.hash(password, 10);
 
-export async function loginUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        displayName,
+        passwordHash,
+      },
+    });
 
-  if (!user) {
-    throw new Error('Invalid credentials');
+    return this.generateToken(user.id);
   }
 
-  const isValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isValid) {
-    throw new Error('Invalid credentials');
+  async login(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.generateToken(user.id);
   }
 
- const token = jwt.sign(
-  { userId: user.id },
-  ENV.JWT_SECRET,
-  { expiresIn: ENV.JWT_EXPIRES_IN }
-);
+  private generateToken(userId: string) {
+    const secret = process.env.JWT_SECRET!;
+    const expiresIn = process.env.JWT_EXPIRES_IN as ms.StringValue|| '1h';
 
-  return {
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName
-    }
-  };
+    return jwt.sign({ userId }, secret, { expiresIn });
+  }
 }

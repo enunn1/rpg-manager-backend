@@ -1,24 +1,32 @@
-import { Request, Response } from 'express';
-import { registerUser, loginUser } from './auth.service';
+import { Body, Controller, Post } from '@nestjs/common';
+import { AuthService } from './auth.service';
 
-export async function register(req: Request, res: Response) {
-  const { email, password, displayName } = req.body;
-
-  try {
-    const user = await registerUser(email, password, displayName);
-    res.status(201).json({ id: user.id });
-  } catch (err) {
-    res.status(400).json({ message: 'Registration failed' });
-  }
+class RegisterDto {
+  email: string;
+  displayName: string;
+  password: string;
 }
 
-export async function login(req: Request, res: Response) {
-  const { email, password } = req.body;
+class LoginDto {
+  email: string;
+  password: string;
+}
 
-  try {
-    const result = await loginUser(email, password);
-    res.json(result);
-  } catch {
-    res.status(401).json({ message: 'Invalid credentials' });
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  async register(@Body() body: RegisterDto) {
+    const { email, displayName, password } = body;
+    const token = await this.authService.register(email, displayName, password);
+    return { accessToken: token };
+  }
+
+  @Post('login')
+  async login(@Body() body: LoginDto) {
+    const { email, password } = body;
+    const token = await this.authService.login(email, password);
+    return { accessToken: token };
   }
 }
