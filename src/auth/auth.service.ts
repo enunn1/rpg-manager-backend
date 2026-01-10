@@ -41,6 +41,17 @@ export class AuthService {
     return this.generateToken(user.id);
   }
 
+  async getUser(userId: string) {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+      },
+    });
+  }
+
   private generateToken(userId: string) {
     const secret = process.env.JWT_SECRET!;
     const expiresIn = process.env.JWT_EXPIRES_IN as ms.StringValue|| '1h';
