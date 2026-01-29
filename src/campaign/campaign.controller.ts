@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { CampaignService } from "./campaign.service";
 import { CreateCampaignDto } from "./dto/create-campaign.dto";
@@ -17,7 +17,13 @@ export class CampaignController {
 
     @UseGuards(JwtAuthGuard)
     @Get('user')
-    getUserCampaigns(@Req() req) {
+    async getUserCampaigns(@Req() req) {
         return this.campaignService.getUserCampaigns(req.user.id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get(':id')
+    async getCampiagnById(@Req() req, @Param('id') id: string) {
+        return this.campaignService.getCampaignById(req.user.id, id);
     }
 }

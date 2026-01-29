@@ -50,4 +50,23 @@ export class CampaignService {
 
         return campaigns;
     }
+
+    async getCampaignById(userId: string, campaignId: string) {
+        return this.prisma.campaign.findFirst({
+            where: {
+            id: campaignId,
+            members: {
+                some: { userId }
+            }
+            },
+            include: {
+            members: {
+                include: {
+                user: true
+                }
+            },
+            createdBy: true
+            }
+        });
+    }
 }
