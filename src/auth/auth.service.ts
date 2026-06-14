@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaService } from '../prisma/prisma.service';
 import type ms from "ms";
 
+
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService) {}

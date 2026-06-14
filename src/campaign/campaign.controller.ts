@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
-import { CampaignService } from "./campaign.service";
-import { CreateCampaignDto } from "./dto/create-campaign.dto";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard.js";
+import { CampaignService } from "./campaign.service.js";
+import { CreateCampaignDto } from "./dto/create-campaign.dto.js";
 
 @UseGuards(JwtAuthGuard)
 @Controller('campaigns')

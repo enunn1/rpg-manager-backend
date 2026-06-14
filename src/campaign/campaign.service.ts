@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateCampaignDto } from "./dto/create-campaign.dto";
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateCampaignDto } from "./dto/create-campaign.dto.js";
 
 @Injectable()
 export class CampaignService {
